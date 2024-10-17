@@ -103,9 +103,15 @@ class MainActivity : AppCompatActivity() {
     private fun shareChiuit(text: String) {
         val sendIntent = Intent().apply {
             // TODO 1: Configure to support text sending/sharing and then attach the text as intent's extra.
+
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_TEXT, text)
+            type = "text/plain"
+
         }
 
         val intentChooser = Intent.createChooser(sendIntent, "")
+
         startActivity(intentChooser)
     }
 
@@ -113,19 +119,29 @@ class MainActivity : AppCompatActivity() {
     Defines an *explicit* intent which will be used to start ComposeActivity.
      */
     private fun composeChiuit(text: String) {
-        // TODO 2: Create an explicit intent which points to ComposeActivity.
+        val intent = Intent(this, ComposeActivity::class.java).apply {
+            // TODO 1: Configure to support text sending/sharing and then attach the text as intent's extra.
+            putExtra(Intent.EXTRA_TEXT, text)
+            type = "text/plain"
+        }
+
+        resultLauncher.launch(intent)
 
         // TODO 3: Start a new activity with the previously defined intent.
-        // We start a new activity that we expect to return the acquired text as the result.
 
 
     }
 
     private fun extractText(data: Intent?) {
+        println("data")
+        println(data)
         data?.let {
             // TODO 5: Extract the text from result intent.
-            // TODO 6: Check if text is not null or empty, then set the new "chiuitText".
+            println(it.getStringExtra(EXTRA_TEXT))
 
+            // TODO 6: Check if text is not null or empty, then set the new "chiuitText".
+            if (it.getStringExtra(EXTRA_TEXT) != null)
+                chiuitText.value = it.getStringExtra(EXTRA_TEXT).toString()
         }
     }
 
@@ -135,3 +151,6 @@ class MainActivity : AppCompatActivity() {
         HomeScreen()
     }
 }
+
+
+
