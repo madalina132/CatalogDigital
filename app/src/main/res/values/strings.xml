@@ -1,9 +1,19 @@
 <resources>
+    <!-- Numele aplicației -->
     <string name="app_name">Chiuitter</string>
+
+    <!-- Placeholder text -->
     <string name="type_some_text">Type some text ...</string>
+
+    <!-- Exemplu de text -->
     <string name="chiuit_example">Iu, iu, iu, că repede mai fug anii iştea ...</string>
+
+    <!-- Etichete pentru diferite acțiuni -->
     <string name="add_your_new_chiuit">Add your new chiuit</string>
     <string name="check_action_icon_content_description">Check action icon</string>
     <string name="send_action_icon_content_description">Send action icon</string>
     <string name="edit_action_icon_content_description">Edit action icon</string>
+
+    <!-- Label pentru ComposeActivity -->
+    <string name="compose_activity_label">Compose Activity</string>
 </resources>
