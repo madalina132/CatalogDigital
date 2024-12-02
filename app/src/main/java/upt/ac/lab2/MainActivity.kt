@@ -63,5 +63,6 @@ class MainActivity : AppCompatActivity() {
         val intent = Intent(this, ComposeActivity::class.java)
         intent.putExtra("ROLE", role)
         startActivity(intent)
+        //
     }
 }
