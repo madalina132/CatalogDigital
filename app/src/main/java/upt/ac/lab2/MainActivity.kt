@@ -4,16 +4,35 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 class MainActivity : AppCompatActivity() {
+
+    companion object {
+        val studentAssignments: SnapshotStateMap<String, MutableList<String>> =
+            mutableStateMapOf(
+                "Student1" to mutableListOf(),
+                "Student2" to mutableListOf(),
+                "Student3" to mutableListOf()
+            )
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { homeScreen() } // Apelul funcției @Composable
+        setContent { homeScreen() }
     }
 
     @Composable
@@ -63,6 +82,5 @@ class MainActivity : AppCompatActivity() {
         val intent = Intent(this, ComposeActivity::class.java)
         intent.putExtra("ROLE", role)
         startActivity(intent)
-        //
     }
 }

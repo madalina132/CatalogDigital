@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
@@ -15,11 +16,14 @@ class ComposeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val role = intent.getStringExtra("ROLE") ?: "unknown"
-        setContent { LoginScreen(role) }
+        setContent { LoginScreen(role, MainActivity.studentAssignments) }
     }
 
     @Composable
-    private fun LoginScreen(role: String) {
+    private fun LoginScreen(
+        role: String,
+        studentAssignments: SnapshotStateMap<String, MutableList<String>>
+    ) {
         var username by remember { mutableStateOf("") }
         var password by remember { mutableStateOf("") }
         var isLoggedIn by remember { mutableStateOf(false) }
@@ -61,13 +65,21 @@ class ComposeActivity : ComponentActivity() {
                     ) {
                         Text("Login")
                     }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = { navigateBackToMain() },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Back")
+                    }
                 }
             }
         } else {
             when (role) {
-                "student" -> StudentDashboard(onLogout = { navigateBackToMain() })
-                "parent" -> ParentDashboard(onLogout = { navigateBackToMain() })
-                "teacher" -> TeacherDashboard(onLogout = { navigateBackToMain() })
+                "student" -> StudentDashboard(username, studentAssignments)
+                "parent" -> ParentDashboard(studentAssignments)
+                "teacher" -> TeacherDashboard(studentAssignments)
                 else -> Text("Unknown role")
             }
         }
@@ -78,8 +90,12 @@ class ComposeActivity : ComponentActivity() {
     }
 
     @Composable
-    private fun StudentDashboard(onLogout: () -> Unit) {
-        val assignments = remember { mutableStateListOf("Math Homework", "Science Project") }
+    private fun StudentDashboard(
+        studentName: String,
+        assignments: SnapshotStateMap<String, MutableList<String>>
+    ) {
+        val studentAssignments = assignments[studentName] ?: emptyList()
+
         Surface {
             Column(
                 modifier = Modifier
@@ -87,29 +103,34 @@ class ComposeActivity : ComponentActivity() {
                     .padding(16.dp),
                 verticalArrangement = Arrangement.Top
             ) {
-                Text("Welcome, Student!", style = MaterialTheme.typography.headlineLarge)
+                Text("Welcome, $studentName!", style = MaterialTheme.typography.headlineLarge)
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Text("Here are your grades and assignments:")
+                Text("Here are your assignments:")
                 Spacer(modifier = Modifier.height(8.dp))
 
                 LazyColumn {
-                    items(assignments.size) { index ->
-                        Text("- ${assignments[index]}")
+                    items(studentAssignments.size) { index ->
+                        Text("- ${studentAssignments[index]}")
                     }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
-
-                Button(onClick = onLogout, modifier = Modifier.fillMaxWidth()) {
-                    Text("Log out")
+                Button(
+                    onClick = { navigateBackToMain() },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Back")
                 }
             }
         }
     }
 
     @Composable
-    private fun ParentDashboard(onLogout: () -> Unit) {
+    private fun ParentDashboard(assignments: SnapshotStateMap<String, MutableList<String>>) {
+        var childName by remember { mutableStateOf("") }
+        val childAssignments = assignments[childName] ?: emptyList()
+
         Surface {
             Column(
                 modifier = Modifier
@@ -119,20 +140,42 @@ class ComposeActivity : ComponentActivity() {
             ) {
                 Text("Welcome, Parent!", style = MaterialTheme.typography.headlineLarge)
                 Spacer(modifier = Modifier.height(16.dp))
-                Text("Here is the progress of your child.")
+
+                TextField(
+                    value = childName,
+                    onValueChange = { childName = it },
+                    label = { Text("Enter your child's name") },
+                    modifier = Modifier.fillMaxWidth()
+                )
 
                 Spacer(modifier = Modifier.height(16.dp))
-                Button(onClick = onLogout, modifier = Modifier.fillMaxWidth()) {
-                    Text("Log out")
+
+                Text("Assignments for $childName:")
+                Spacer(modifier = Modifier.height(8.dp))
+
+                LazyColumn {
+                    items(childAssignments.size) { index ->
+                        Text("- ${childAssignments[index]}")
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = { navigateBackToMain() },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Back")
                 }
             }
         }
     }
 
     @Composable
-    private fun TeacherDashboard(onLogout: () -> Unit) {
-        val assignments = remember { mutableStateListOf<String>() }
+    private fun TeacherDashboard(assignments: SnapshotStateMap<String, MutableList<String>>) {
         var newAssignment by remember { mutableStateOf("") }
+        var selectedStudent by remember { mutableStateOf("All Students") }
+        val students = assignments.keys.toList()
+        var isDropdownExpanded by remember { mutableStateOf(false) }
 
         Surface {
             Column(
@@ -153,10 +196,49 @@ class ComposeActivity : ComponentActivity() {
 
                 Spacer(modifier = Modifier.height(8.dp))
 
+                Text("Select a student:")
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Button(
+                    onClick = { isDropdownExpanded = !isDropdownExpanded },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(selectedStudent)
+                }
+
+                DropdownMenu(
+                    expanded = isDropdownExpanded,
+                    onDismissRequest = { isDropdownExpanded = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("All Students") },
+                        onClick = {
+                            selectedStudent = "All Students"
+                            isDropdownExpanded = false
+                        }
+                    )
+
+                    students.forEach { student ->
+                        DropdownMenuItem(
+                            text = { Text(student) },
+                            onClick = {
+                                selectedStudent = student
+                                isDropdownExpanded = false
+                            }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
                 Button(
                     onClick = {
                         if (newAssignment.isNotEmpty()) {
-                            assignments.add(newAssignment)
+                            if (selectedStudent == "All Students") {
+                                students.forEach { assignments[it]?.add(newAssignment) }
+                            } else {
+                                assignments[selectedStudent]?.add(newAssignment)
+                            }
                             newAssignment = ""
                         }
                     },
@@ -166,27 +248,17 @@ class ComposeActivity : ComponentActivity() {
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
-
-                Text("Current Assignments:")
-                Spacer(modifier = Modifier.height(8.dp))
-
-                LazyColumn {
-                    items(assignments.size) { index ->
-                        Text("- ${assignments[index]}")
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Button(onClick = onLogout, modifier = Modifier.fillMaxWidth()) {
-                    Text("Log out")
+                Button(
+                    onClick = { navigateBackToMain() },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Back")
                 }
             }
         }
     }
 
     private fun navigateBackToMain() {
-        // Navighează înapoi la MainActivity
         val intent = Intent(this, MainActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
         startActivity(intent)
